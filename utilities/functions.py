@@ -2,9 +2,15 @@
 from utilities.classes import *
 from pygame.locals     import *
 from math              import copysign, sin, cos, radians
+import                        pygame.freetype  
 
 # Holds the stuff to print the screen
-def printScreen(OBJECTS: list[object], screen: pygame.surface.Surface):
+def printScreen(OBJECTS: list[object], 
+                screen: pygame.surface.Surface, 
+                GAME_FONT: pygame.freetype.Font, 
+                PLAYER_ONE_SCORE: int, 
+                PLAYER_TWO_SCORE: int, 
+                PAUSED: bool):
 
     # Fill the screen with a color to wipe away anything from last frame
     screen.fill("black")
@@ -13,7 +19,15 @@ def printScreen(OBJECTS: list[object], screen: pygame.surface.Surface):
     for object in OBJECTS:
         screen.fill(OBJECTS[object].color, OBJECTS[object].rect)
 
-    # Flip() the display to put your work on screen
+    # Print the score onto the screen
+    text_surface, text_rect = GAME_FONT.render(f"{PLAYER_ONE_SCORE}           SCORE           {PLAYER_TWO_SCORE}", (255, 255, 255))
+    screen.blit(text_surface, ((screen.get_width()-text_rect.width)/2, 0.01*screen.get_height()))
+
+    # Add paused text if paused
+    if PAUSED:
+        text_surface, text_rect = GAME_FONT.render(f"PAUSED", (255, 255, 255))
+        screen.blit(text_surface, ((screen.get_width()-text_rect.width)/2, (screen.get_height()-text_rect.height)/2))
+
     pygame.display.flip()
 
 # Moves the objects
@@ -46,16 +60,20 @@ def movement(OBJECTS: list[object], SCREEN: Screen, PLAYER_ONE_SCORE: int, PLAYE
 
         # Reset the ball and give player two a point
         OBJECTS["BALL"] = Object(SCREEN, POSITION = "BALL")
+        OBJECTS["PLAYER_ONE"] = Object(SCREEN, POSITION = "PLAYER ONE")
+        OBJECTS["PLAYER_TWO"] = Object(SCREEN, POSITION = "PLAYER TWO")
         PLAYER_TWO_SCORE += 1
-        print(f"Player One: {PLAYER_ONE_SCORE}\nPlayer Two: {PLAYER_TWO_SCORE}\n")
+        # print(f"Player One: {PLAYER_ONE_SCORE}\nPlayer Two: {PLAYER_TWO_SCORE}\n")
 
     # If ball hits the right wall
     elif collision == 1:
 
         # Reset the ball and give player two a point
         OBJECTS["BALL"] = Object(SCREEN, POSITION = "BALL")
+        OBJECTS["PLAYER_ONE"] = Object(SCREEN, POSITION = "PLAYER ONE")
+        OBJECTS["PLAYER_TWO"] = Object(SCREEN, POSITION = "PLAYER TWO")
         PLAYER_ONE_SCORE += 1
-        print(f"Player One: {PLAYER_ONE_SCORE}\nPlayer Two: {PLAYER_TWO_SCORE}\n")
+        # print(f"Player One: {PLAYER_ONE_SCORE}\nPlayer Two: {PLAYER_TWO_SCORE}\n")
 
     # If ball hits the top or bottom wall
     elif collision in (2, 3):
@@ -159,6 +177,9 @@ def core(screen: pygame.surface.Surface):
     PLAYER_TWO_SCORE = 0
     PAUSED           = True
     SPACE_HELD       = False
+    SCOREBOARD       = False
+    GAME_FONT        = pygame.freetype.SysFont("Ariel", 24)
+    print(type(GAME_FONT))
     
     # List holding all the objects that will be manipulated
     OBJECTS = {"LEFT_WALL":     LEFT_WALL,
@@ -170,7 +191,7 @@ def core(screen: pygame.surface.Surface):
                "PLAYER_TWO":    PLAYER_TWO,
                "BALL":          BALL}
     
-    printScreen(OBJECTS, screen)
+    printScreen(OBJECTS, screen, GAME_FONT, PLAYER_ONE_SCORE, PLAYER_TWO_SCORE, PAUSED)
 
     # Loop for the actual game
     while running:
@@ -192,7 +213,7 @@ def core(screen: pygame.surface.Surface):
                 for object in OBJECTS:
                     OBJECTS[object].set(SCREEN)
 
-                printScreen(OBJECTS, screen)
+                printScreen(OBJECTS, screen, GAME_FONT, PLAYER_ONE_SCORE, PLAYER_TWO_SCORE, PAUSED)
                 PAUSED = True
 
             # If the user presses or releases a key
@@ -202,6 +223,7 @@ def core(screen: pygame.surface.Surface):
                 if event.type == KEYDOWN and pygame.key.get_pressed()[K_SPACE] and not SPACE_HELD:
                     PAUSED = not PAUSED
                     SPACE_HELD = True
+                    printScreen(OBJECTS, screen, GAME_FONT, PLAYER_ONE_SCORE, PLAYER_TWO_SCORE, PAUSED)
 
                 if event.type == KEYUP and not pygame.key.get_pressed()[K_SPACE]:
                     SPACE_HELD = False
@@ -221,7 +243,8 @@ def core(screen: pygame.surface.Surface):
             # Move all the objects
             OBJECTS, PLAYER_ONE_SCORE, PLAYER_TWO_SCORE = movement(OBJECTS, SCREEN, PLAYER_ONE_SCORE, PLAYER_TWO_SCORE)
 
-            printScreen(OBJECTS, screen)
+            printScreen(OBJECTS, screen, GAME_FONT, PLAYER_ONE_SCORE, PLAYER_TWO_SCORE, PAUSED)
+            SCOREBOARD = False
 
             # Limits FPS to 60
             clock.tick(60)  
