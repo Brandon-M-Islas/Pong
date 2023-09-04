@@ -6,7 +6,6 @@ os.environ['PYGAME_HIDE_SUPPORT_PROMPT'] = "hide"
 import                          pygame
 from utilities.classes   import *
 from utilities.functions import *
-from pygame.locals       import *
 
 # Where the game actually runs
 def game():
