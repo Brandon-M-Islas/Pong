@@ -4,3 +4,4 @@ Recreating the classic game "Pong" in python. Player one moves with WASD and pla
 ## Possible upcoming features:
   - CPU levels
   - Ball & Player speed customization
+  - Ability to select and pause with mouse
